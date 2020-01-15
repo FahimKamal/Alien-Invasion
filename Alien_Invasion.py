@@ -62,9 +62,10 @@ missile.color('orange')
 missile.shape('triangle')
 missile.shapesize(stretch_wid=0.3, stretch_len=0.5)
 missile.penup()
+missile.left(90)
 missile.goto(-1000, -1000)
 missile.speed = 20
-missile.left(90)
+missile.state = 'ready'
 
 
 # Functions
@@ -79,6 +80,13 @@ def move_left():
     if player.xcor() > -190:
         player.setx(player.xcor() - player.dx)
 
+
+def is_collision():
+    """Returns true if missile and the alien made a collision"""
+    if enemy.xcor() - 10 < missile.xcor() < enemy.xcor() + 10 and \
+            enemy.ycor() - 10 < missile.ycor() < enemy.ycor() + 10:
+        return True
+    return False
 
 def movement():
     """Movement of the enemy and missile will be controlled from here"""
@@ -95,13 +103,39 @@ def movement():
         # enemy also come down a little bit too
         enemy.sety(enemy.ycor() - 20)
 
+    # Border checking for missile
+    if missile.ycor() > 260:
+        missile.state = 'ready'
+        missile.goto(-1000, -1000)
+
+    # if is_collision():
+    #     missile.state = 'ready'
+    #     missile.goto(-1000, -1000)
+    #     enemy.goto(random.randint(-190, 190), enemy.locationy)
+
+    # Check if missile and enemy made a collision
+    # If yes then the enemy re-appear in random location.
+    if missile.distance(enemy) < 20:
+        missile.state = 'ready'
+        missile.goto(-1000, -1000)
+        enemy.goto(random.randint(-190, 190), random.randint(0, 250))
+
+    # Check is enemy hits the player
+    # If yes then it's game over.
+    if player.distance(enemy) < 15:
+        player.hideturtle()
+        enemy.hideturtle()
+        print('Game over')
+        return True
     enemy.forward(enemy.dx)
     missile.forward(missile.speed)
 
 
 def fire_missile():
     # Comes to the position of the player
-    missile.goto(player.xcor(), player.ycor())
+    if missile.state == 'ready':
+        missile.goto(player.xcor(), player.ycor())
+        missile.state = 'firing'
 
 
 # Key binding
@@ -114,5 +148,7 @@ window.onkeypress(fire_missile, 'space')
 while True:
     window.update()
     # move the enemy
-    movement()
+    end_game = movement()
     time.sleep(0.05)
+    if end_game:
+        break
