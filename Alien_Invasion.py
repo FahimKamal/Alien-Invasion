@@ -13,7 +13,7 @@ window = turtle.Screen()
 window.setup(width=500, height=650)
 window.bgcolor('black')
 window.title('Alien Invasion by Fahim Kamal')
-window.tracer()
+window.tracer(0)
 
 # Draw the border
 border_pen = turtle.Turtle()
@@ -42,23 +42,77 @@ player.shape('triangle')
 player.penup()
 player.goto(0, -265)
 player.left(90)
-player.distance = 10
+# Player speed
+player.dx = 10
+
+# Create the enemy
+enemy = turtle.Turtle()
+enemy.speed(0)
+enemy.color('red')
+enemy.shape('square')
+enemy.penup()
+enemy.goto(-150, 200)
+# enemy speed
+enemy.dx = 4
+
+# Missile for the player
+missile = turtle.Turtle()
+missile.speed(0)
+missile.color('orange')
+missile.shape('triangle')
+missile.shapesize(stretch_wid=0.3, stretch_len=0.5)
+missile.penup()
+missile.goto(-1000, -1000)
+missile.speed = 20
+missile.left(90)
 
 
 # Functions
 def move_right():
-    player.setx(player.xcor() + player.distance)
+    """Move the player to right"""
+    if player.xcor() < 190:
+        player.setx(player.xcor() + player.dx)
 
 
 def move_left():
-    player.setx(player.xcor() - player.distance)
+    """Move the player to left"""
+    if player.xcor() > -190:
+        player.setx(player.xcor() - player.dx)
+
+
+def movement():
+    """Movement of the enemy and missile will be controlled from here"""
+    if enemy.xcor() > 190:
+        # If enemy reaches the right border it reverses
+        enemy.setx(190)
+        enemy.dx *= -1
+        # enemy also come down a little bit too
+        enemy.sety(enemy.ycor() - 20)
+    elif enemy.xcor() < -190:
+        # If enemy reaches the left border it reverses
+        enemy.setx(-190)
+        enemy.dx *= -1
+        # enemy also come down a little bit too
+        enemy.sety(enemy.ycor() - 20)
+
+    enemy.forward(enemy.dx)
+    missile.forward(missile.speed)
+
+
+def fire_missile():
+    # Comes to the position of the player
+    missile.goto(player.xcor(), player.ycor())
 
 
 # Key binding
 window.listen()
 window.onkeypress(move_right, 'Right')
 window.onkeypress(move_left, 'Left')
+window.onkeypress(fire_missile, 'space')
 
 # Main game loop
 while True:
     window.update()
+    # move the enemy
+    movement()
+    time.sleep(0.05)
