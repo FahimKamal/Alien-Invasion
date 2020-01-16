@@ -13,6 +13,7 @@ window.bgpic('game_bg2.gif')
 window.title('Alien Invasion by Fahim Kamal')
 window.tracer(0)
 
+
 # Base class
 class Base(turtle.Turtle):
     def __init__(self, shape, color, startx, starty):
@@ -22,6 +23,7 @@ class Base(turtle.Turtle):
         self.penup()
         self.goto(startx, starty)
         self.speed = 1
+
 
 # Game class
 class Game(Base):
@@ -43,11 +45,12 @@ class Game(Base):
         self.penup()
         self.hideturtle()
 
+
 class Player(Base):
     def __init__(self, shape, color, startx, starty):
         Base.__init__(self, shape, color, startx, starty)
         self.left(90)
-        self.speed = 5
+        self.speed = 7
 
     def move_left(self):
         """Move the player to left"""
@@ -61,9 +64,56 @@ class Player(Base):
 class Enemy(Base):
     def __init__(self, shape, color, startx, starty):
         Base.__init__(self, shape, color, startx, starty)
+        self.speed = 5
+
+    def move(self):
+        """Movement of the object will be controlled from here"""
+        self.forward(self.speed)
+
+        # Border check
+        if self.xcor() > 190:
+            # If hit the right border reverse direction
+            # Also comes 1 step downward
+            self.sety(self.ycor() - 20)
+            self.setx(190)
+            self.speed *= -1
+        if self.xcor() < -190:
+            # If hit the left border reverse direction
+            # Also comes 1 step downward
+            self.sety(self.ycor() - 20)
+            self.setx(-190)
+            self.speed *= -1
+
+class Missile(Base):
+    def __init__(self, shape, color, startx, starty):
+        Base.__init__(self, shape, color, startx, starty)
+        self.speed = 20
+        self.left(90)
+        self.shapesize(stretch_wid=0.4, stretch_len=0.5)
+        self.state = 'ready'
+
+    def fire(self):
+        if self.state == 'ready':
+            self.goto(player.xcor(), player.ycor())
+            self.state = 'firing'
+
+    def move(self):
+        self.forward(self.speed)
+
+        # Top border check
+        if self.ycor() > 260:
+            self.goto(-1000, -1000)
+            self.state = 'ready'
+
 
 # Create Player
 player = Player('triangle', 'blue', 0, -240)
+# Create enemy
+# enemy = Enemy('circle', 'red', random.randint(-180, 180), random.randint(0, 270))
+enemies = [Enemy('circle', 'red', random.randint(-180, 180), random.randint(0, 270))
+           for _ in range(5)]
+# Create missile
+missile = Missile('triangle', 'yellow', -1000, -1000)
 # Create Border
 game = Game('triangle', 'white', -200, -275)
 game.draw_border()
@@ -72,7 +122,14 @@ game.draw_border()
 window.listen()
 window.onkeypress(player.move_left, 'Left')
 window.onkeypress(player.move_right, 'Right')
+window.onkeypress(missile.fire, 'space')
 
 # Main game loop
 while True:
     window.update()
+    # Move the enemies
+    for enemy in enemies:
+        enemy.move()
+    if missile.state == 'firing':
+        missile.move()
+    time.sleep(0.02)
