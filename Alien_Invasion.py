@@ -12,6 +12,7 @@ import winsound
 window = turtle.Screen()
 window.setup(width=500, height=650)
 window.bgcolor('black')
+window.bgpic('game_bg2.gif')
 window.title('Alien Invasion by Fahim Kamal')
 window.tracer(0)
 
@@ -34,26 +35,48 @@ for i in range(4):
 border_pen.penup()
 border_pen.hideturtle()
 
+# Scoring system
+score = 0
+score_pen = turtle.Turtle()
+score_pen.speed(0)
+score_pen.penup()
+score_pen.color('white')
+score_pen.goto(-200, 290)
+score_pen.hideturtle()
+score_pen.write(f'Score: {score}', font=('Arial', 18, 'bold'))
+
+# Register the sheps
+window.register_shape('alien_ship2.gif')
+window.register_shape('player2.gif')
+
 # Create player
 player = turtle.Turtle()
 player.speed(0)
 player.color('blue')
-player.shape('triangle')
+player.shape('player2.gif')
 player.penup()
-player.goto(0, -265)
+player.goto(0, -240)
 player.left(90)
 # Player speed
 player.dx = 10
 
+def create_enemy():
+    """Function to create enemies"""
+    enemy = turtle.Turtle()
+    enemy.speed(0)
+    enemy.color('red')
+    enemy.shape('alien_ship2.gif')
+    enemy.penup()
+    # will pop up in a random location
+    enemy.goto(random.randint(-180, 180), random.randint(0, 270))
+    # enemy speed
+    enemy.dx = 1
+    return enemy
+
+
 # Create the enemy
-enemy = turtle.Turtle()
-enemy.speed(0)
-enemy.color('red')
-enemy.shape('square')
-enemy.penup()
-enemy.goto(-150, 200)
-# enemy speed
-enemy.dx = 4
+enemy_number = 5
+enemies = [create_enemy() for _ in range(enemy_number)]
 
 # Missile for the player
 missile = turtle.Turtle()
@@ -81,53 +104,48 @@ def move_left():
         player.setx(player.xcor() - player.dx)
 
 
-def is_collision():
-    """Returns true if missile and the alien made a collision"""
-    if enemy.xcor() - 10 < missile.xcor() < enemy.xcor() + 10 and \
-            enemy.ycor() - 10 < missile.ycor() < enemy.ycor() + 10:
-        return True
-    return False
-
 def movement():
     """Movement of the enemy and missile will be controlled from here"""
-    if enemy.xcor() > 190:
-        # If enemy reaches the right border it reverses
-        enemy.setx(190)
-        enemy.dx *= -1
-        # enemy also come down a little bit too
-        enemy.sety(enemy.ycor() - 20)
-    elif enemy.xcor() < -190:
-        # If enemy reaches the left border it reverses
-        enemy.setx(-190)
-        enemy.dx *= -1
-        # enemy also come down a little bit too
-        enemy.sety(enemy.ycor() - 20)
+    global score
+    for enemy in enemies:
+        if enemy.xcor() > 190:
+            # If enemy reaches the right border it reverses
+            # enemy also come down a little bit too
+            # All at once
+            for enemys in enemies:
+                enemys.sety(enemys.ycor() - 20)
+                enemys.dx *= -1
+        elif enemy.xcor() < -190:
+            # If enemy reaches the left border it reverses
+            # enemy also come down a little bit too
+            # All at once
+            for enemys in enemies:
+                enemys.sety(enemys.ycor() - 20)
+                enemys.dx *= -1
 
-    # Border checking for missile
-    if missile.ycor() > 260:
-        missile.state = 'ready'
-        missile.goto(-1000, -1000)
+        # Border checking for missile
+        if missile.ycor() > 260:
+            missile.state = 'ready'
+            missile.goto(-1000, -1000)
 
-    # if is_collision():
-    #     missile.state = 'ready'
-    #     missile.goto(-1000, -1000)
-    #     enemy.goto(random.randint(-190, 190), enemy.locationy)
+        # Check if missile and enemy made a collision
+        # If yes then the enemy re-appear in random location.
+        if missile.distance(enemy) < 20:
+            missile.state = 'ready'
+            missile.goto(-1000, -1000)
+            enemy.goto(random.randint(-180, 180), random.randint(0, 250))
+            score += 1
+            score_pen.clear()
+            score_pen.write(f'Score: {score}', font=('Arial', 18, 'bold'))
 
-    # Check if missile and enemy made a collision
-    # If yes then the enemy re-appear in random location.
-    if missile.distance(enemy) < 20:
-        missile.state = 'ready'
-        missile.goto(-1000, -1000)
-        enemy.goto(random.randint(-190, 190), random.randint(0, 250))
-
-    # Check is enemy hits the player
-    # If yes then it's game over.
-    if player.distance(enemy) < 15:
-        player.hideturtle()
-        enemy.hideturtle()
-        print('Game over')
-        return True
-    enemy.forward(enemy.dx)
+        # Check is enemy hits the player
+        # If yes then it's game over.
+        if player.distance(enemy) < 15:
+            player.hideturtle()
+            enemy.hideturtle()
+            print('Game over')
+            return True
+        enemy.forward(enemy.dx)
     missile.forward(missile.speed)
 
 
