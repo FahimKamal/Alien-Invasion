@@ -70,7 +70,7 @@ def create_enemy():
     # will pop up in a random location
     enemy.goto(random.randint(-180, 180), random.randint(0, 270))
     # enemy speed
-    enemy.dx = 1
+    enemy.dx = 4
     return enemy
 
 
@@ -112,16 +112,22 @@ def movement():
             # If enemy reaches the right border it reverses
             # enemy also come down a little bit too
             # All at once
-            for enemys in enemies:
-                enemys.sety(enemys.ycor() - 20)
-                enemys.dx *= -1
+            # for enemys in enemies:
+            #     enemys.sety(enemys.ycor() - 20)
+            #     enemys.dx *= -1
+
+            enemy.sety(enemy.ycor() - 20)
+            enemy.dx *= -1
         elif enemy.xcor() < -190:
             # If enemy reaches the left border it reverses
             # enemy also come down a little bit too
             # All at once
-            for enemys in enemies:
-                enemys.sety(enemys.ycor() - 20)
-                enemys.dx *= -1
+            # for enemys in enemies:
+            #     enemys.sety(enemys.ycor() - 20)
+            #     enemys.dx *= -1
+
+            enemy.sety(enemy.ycor() - 20)
+            enemy.dx *= -1
 
         # Border checking for missile
         if missile.ycor() > 260:
@@ -137,10 +143,12 @@ def movement():
             score += 1
             score_pen.clear()
             score_pen.write(f'Score: {score}', font=('Arial', 18, 'bold'))
+            winsound.PlaySound('explosion.wav', winsound.SND_ASYNC)
 
         # Check is enemy hits the player
         # If yes then it's game over.
         if player.distance(enemy) < 15:
+            winsound.PlaySound('Lost_life.wav', winsound.SND_ASYNC)
             player.hideturtle()
             enemy.hideturtle()
             print('Game over')
@@ -154,6 +162,7 @@ def fire_missile():
     if missile.state == 'ready':
         missile.goto(player.xcor(), player.ycor())
         missile.state = 'firing'
+        winsound.PlaySound('laser-gun.wav', winsound.SND_ASYNC)
 
 
 # Key binding
@@ -167,6 +176,6 @@ while True:
     window.update()
     # move the enemy
     end_game = movement()
-    time.sleep(0.05)
+    time.sleep(0.03)
     if end_game:
         break
