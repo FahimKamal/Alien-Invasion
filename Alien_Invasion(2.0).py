@@ -24,6 +24,15 @@ class Base(turtle.Turtle):
         self.goto(startx, starty)
         self.speed = 1
 
+    def is_collision(self, other):
+        """Returns true if two objects crash with each-other"""
+        if self.distance(other) < 20:
+            return True
+        return False
+
+    def go_random(self):
+        self.goto(random.randint(-180, 180), random.randint(0, 270))
+
 
 # Game class
 class Game(Base):
@@ -50,7 +59,7 @@ class Player(Base):
     def __init__(self, shape, color, startx, starty):
         Base.__init__(self, shape, color, startx, starty)
         self.left(90)
-        self.speed = 7
+        self.speed = 15
 
     def move_left(self):
         """Move the player to left"""
@@ -64,7 +73,7 @@ class Player(Base):
 class Enemy(Base):
     def __init__(self, shape, color, startx, starty):
         Base.__init__(self, shape, color, startx, starty)
-        self.speed = 5
+        self.speed = 4
 
     def move(self):
         """Movement of the object will be controlled from here"""
@@ -87,7 +96,7 @@ class Enemy(Base):
 class Missile(Base):
     def __init__(self, shape, color, startx, starty):
         Base.__init__(self, shape, color, startx, starty)
-        self.speed = 20
+        self.speed = 5
         self.left(90)
         self.shapesize(stretch_wid=0.4, stretch_len=0.5)
         self.state = 'ready'
@@ -97,13 +106,17 @@ class Missile(Base):
             self.goto(player.xcor(), player.ycor())
             self.state = 'firing'
 
+    def make_ready(self):
+        """Make the missile ready to fire again"""
+        self.goto(-1000, -1000)
+        self.state = 'ready'
+
     def move(self):
         self.forward(self.speed)
 
         # Top border check
         if self.ycor() > 260:
-            self.goto(-1000, -1000)
-            self.state = 'ready'
+            self.make_ready()
 
 
 # Create Player
@@ -130,6 +143,9 @@ while True:
     # Move the enemies
     for enemy in enemies:
         enemy.move()
-    if missile.state == 'firing':
-        missile.move()
+        if missile.state == 'firing':
+            missile.move()
+            if missile.is_collision(enemy):
+                enemy.go_random()
+                missile.make_ready()
     time.sleep(0.02)
